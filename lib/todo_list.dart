@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:todo_hive/functions/db_functions.dart';
 import 'package:todo_hive/model/model.dart';
+import 'package:todo_hive/screen_checked.dart';
 
 class ToDoList extends StatefulWidget {
   const  ToDoList({ Key? key,});
@@ -20,20 +21,14 @@ class _ToDoListState extends State<ToDoList> {
 
    String _search = '';
   List<TodoModel> searchedlist = [];
-  loadstudent() async {
-   
-    searchedlist = await getAllTasks();
-    searchResult(); 
-  }
-  
+
   @override
   void initState() {
-   
-    loadstudent();
     super.initState();
+    searchedlist = todoListNotifier.value; 
   }
+
   void searchResult() {
-    
     setState(() {
       searchedlist = todoListNotifier.value
           .where((todoModel) =>
@@ -124,9 +119,11 @@ class _ToDoListState extends State<ToDoList> {
                       value: data.isDone,
                       onChanged: (newvalue) {
                         setState(() {
+
                           data.isDone = newvalue!;
-                         
-                          Hive.box<TodoModel>('student_db').put(index, data);
+                         Hive.box<TodoModel>('student_db').put(index, data);
+                             
+                          
                         });
                       },
                     ),
