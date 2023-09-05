@@ -3,11 +3,12 @@ import 'dart:js_util';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/adapters.dart';
 import 'package:todo_hive/functions/db_functions.dart';
 import 'package:todo_hive/model/model.dart';
 
 class ToDoList extends StatefulWidget {
-  const ToDoList({ Key? key,});
+  const  ToDoList({ Key? key,});
 
   @override
   State<ToDoList> createState() => _ToDoListState();
@@ -15,19 +16,24 @@ class ToDoList extends StatefulWidget {
 
 class _ToDoListState extends State<ToDoList> {
   TextEditingController _taskController = TextEditingController();
+  bool ischecked=false;
 
    String _search = '';
   List<TodoModel> searchedlist = [];
   loadstudent() async {
+   
     searchedlist = await getAllTasks();
     searchResult(); 
   }
+  
   @override
   void initState() {
+   
     loadstudent();
     super.initState();
   }
   void searchResult() {
+    
     setState(() {
       searchedlist = todoListNotifier.value
           .where((todoModel) =>
@@ -80,53 +86,60 @@ class _ToDoListState extends State<ToDoList> {
             ),
             ),
                Expanded(
-                child: ValueListenableBuilder<List<TodoModel>>(
-                  valueListenable: todoListNotifier,
-                  builder:
-                      (BuildContext context, List<TodoModel> todoList, Widget? child) {
-                    return ListView.builder(
-                      itemCount: searchedlist.length,
-                      itemBuilder: (context, index) {
-                        final data = searchedlist[index];
-                        return Container(
-                          width: 200,
-                          height: 100,
-                          child: Padding(
-                            padding: const EdgeInsets.all(4.0),
-                            child: Card(
-                              color: Colors.amber,
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(5)),
-                              elevation: 0,
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: ListTile(
-                                  title: Text(data.task, style: TextStyle(fontStyle: FontStyle.italic,fontWeight: FontWeight.bold),),
-                                  trailing: IconButton(
-                                    onPressed: () {
-                                      deleteTask(index);
-                                    },
-                                    icon: const Icon(Icons.delete, color: Colors.red),
-                                  ),
-                                  leading: Checkbox(
-                                    value: data.isDone,
-                                    onChanged: (value) {
-                                      setState(() {
-                                        data.isDone = value!;
-                                        
-                                      });
-                                    },
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    );
-                  },
+  child: ValueListenableBuilder<List<TodoModel>>(
+    valueListenable: todoListNotifier,
+    builder: (BuildContext context, List<TodoModel> todoList, Widget? child) {
+      return ListView.builder(
+        itemCount: searchedlist.length,
+        itemBuilder: (context, index) {
+          final data = searchedlist[index];
+          return Container(
+            width: 200,
+            height: 100,
+            child: Padding(
+              padding: const EdgeInsets.all(4.0),
+              child: Card(
+                color: Colors.amber,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(5),
                 ),
-              ),         
+                elevation: 0,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ListTile(
+                    title: Text(
+                      data.task,
+                      style: TextStyle(
+                        fontStyle: FontStyle.italic,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    trailing: IconButton(
+                      onPressed: () {
+                        deleteTask(index);
+                      },
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                    ),
+                    leading: Checkbox(
+                      value: data.isDone,
+                      onChanged: (newvalue) {
+                        setState(() {
+                          data.isDone = newvalue!;
+                         
+                          Hive.box<TodoModel>('student_db').put(index, data);
+                        });
+                      },
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      );
+    },
+  ),
+),         
         ],),  
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -177,7 +190,7 @@ class _ToDoListState extends State<ToDoList> {
     if (_task.isEmpty) {
       return;
     }
-    final _toDo = TodoModel(task: _task,isDone:false);
-    addtask(_toDo);
+    final toDo = TodoModel(task: _task,isDone:false);
+    await addtask(toDo);
   }
 }
