@@ -23,9 +23,9 @@ void deleteTask(int id) async {
   await tododb.deleteAt(id);
   getAllTasks();
 }
-  // void saveTaskToHive(TodoModel todo) async {
-  //   final tododb = await Hive.openBox<TodoModel>('student_db');
-  //   await tododb.add(todo);
-  //   getAllTasks();
-  // }
 
+void addCheck(int id,TodoModel data) async {
+  final tododb = await Hive.openBox<TodoModel>('student_db');
+  await tododb.putAt(id,data);
+  getAllTasks();
+}
