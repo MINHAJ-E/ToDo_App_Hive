@@ -5,7 +5,7 @@ import 'package:todo_hive/model/model.dart';
 class CheckedTasksPage extends StatelessWidget {
   final List<TodoModel> checkedTasks;
 
-  CheckedTasksPage({required this.checkedTasks});
+  const CheckedTasksPage({super.key, required this.checkedTasks});
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +18,7 @@ class CheckedTasksPage extends StatelessWidget {
         itemCount: checkedTasks.length,
         itemBuilder: (context, index) {
           final data = checkedTasks[index];
-          return Container(
+          return SizedBox(
             width: 200,
             height: 100,
             child: Padding(

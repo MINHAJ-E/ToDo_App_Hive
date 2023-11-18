@@ -1,11 +1,11 @@
 // ignore_for_file: prefer_const_constructors
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:provider/provider.dart';
 import 'package:todo_hive/functions/db_functions.dart';
 import 'package:todo_hive/model/model.dart';
 import 'package:todo_hive/screen_checked.dart';
 import 'package:todo_hive/screen_unchecked.dart';
+import 'package:todo_hive/screens/provider.dart';
 
 class ToDoList extends StatefulWidget {
   const ToDoList({Key? key}) : super(key: key);
@@ -15,31 +15,26 @@ class ToDoList extends StatefulWidget {
 }
 
 class _ToDoListState extends State<ToDoList> {
-  TextEditingController _taskController = TextEditingController();
-  String _search = '';
-  List<TodoModel> searchedlist = [];
+  final TextEditingController _taskController = TextEditingController();
+ 
 
   @override   
   void initState() {
     super.initState();
     
-    getAllTasks();
-    searchedlist=todoListNotifier.value;
+Future.delayed(Duration.zero, () {
+    Provider.of<TodoProvider>(context, listen: false).searchedlist = todoListNotifier.value;
+  });
  
   }
 
-  void searchResult() {
-    setState(() {
-      
-      searchedlist = todoListNotifier.value
-          .where((incomigModel) =>
-            incomigModel.task.toLowerCase().contains(_search.toLowerCase()))
-          .toList();
-    });
-  }
+// String search="";
 
   @override
   Widget build(BuildContext context) {
+    
+    getAllTasks();
+   var todoprovider =Provider.of<TodoProvider>(context);
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.amber,
@@ -75,12 +70,10 @@ class _ToDoListState extends State<ToDoList> {
                       color: Color.fromARGB(255, 79, 24, 4), width: 2),
                 ),
               ),
-              onChanged: (value) {
-                setState(() {
-                  _search = value;
-                });
-                searchResult();
-              },
+            onChanged: (value) {
+  todoprovider.search = value;
+  todoprovider.searchResult(value);
+}, 
             ),
           ),
           Expanded(
@@ -89,10 +82,10 @@ class _ToDoListState extends State<ToDoList> {
               builder: (BuildContext context, List<TodoModel> todoList,
                    _) {
                 return ListView.builder(
-                  itemCount: searchedlist.length,
+                  itemCount: todoprovider.searchedlist.length,
                   itemBuilder: (context, index) {
-                    final data = searchedlist[index];
-                    return Container(
+                    final data =todoprovider. searchedlist[index];
+                    return SizedBox(
                       width: 200,
                       height: 100,
                       child: Padding(
@@ -114,8 +107,9 @@ class _ToDoListState extends State<ToDoList> {
                                 ),
                               ),
                               trailing: IconButton(
-                                onPressed: () {
-                                  deleteTask(index);
+                                onPressed: () 
+                                {
+                                todoprovider.deletetodo(index);
                                 },
                                 icon:
                                     const Icon(Icons.delete, color: Colors.red),
@@ -125,12 +119,11 @@ class _ToDoListState extends State<ToDoList> {
                               leading: Checkbox(
                                 value: data.isDone,
                                 onChanged: (newvalue) {
-                                  setState(() async{
+                                 
                                     data.isDone = newvalue!;
-                                    addCheck(index, data);
-                                  //  await Hive.box<TodoModel>('student_db')
-                                  //       .put(index, data);
-                                  });
+                                   
+                                     todoprovider.checkkbox(index, data);
+                                 
                                 },
                               ),
                             ),
@@ -161,7 +154,7 @@ class _ToDoListState extends State<ToDoList> {
           SizedBox(width: 16),
           FloatingActionButton(
             onPressed: () {
-              final checkedTaskss = searchedlist.where((taskss) => taskss.isDone).toList();
+              final checkedTaskss =todoprovider. searchedlist.where((taskss) => taskss.isDone).toList();
               Navigator.push( context, MaterialPageRoute(
                   builder: (context) =>
                       CheckedTasksPage(checkedTasks: checkedTaskss),
@@ -175,7 +168,7 @@ class _ToDoListState extends State<ToDoList> {
           FloatingActionButton(
             onPressed: () {
               final uncheckedTaskss =
-                  searchedlist.where((task) => !task.isDone).toList();
+                 todoprovider. searchedlist.where((task) => !task.isDone).toList();
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -226,11 +219,11 @@ class _ToDoListState extends State<ToDoList> {
   }
 
   Future<void> saved() async {
-    final _task = _taskController.text.trim();
-    if (_task.isEmpty) {
+    final task = _taskController.text.trim();
+    if (task.isEmpty) {
       return;
     }
-    final toDo = TodoModel(task: _task, isDone: false);
+    final toDo = TodoModel(task: task, isDone: false);
     await addtask(toDo);
   }
 }
